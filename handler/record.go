@@ -13,7 +13,7 @@ type CreateRecordRequest struct {
 	Score  string `json:"score"`
 }
 
-func (h *Handler) SaveScore(c echo.Context) error {
+func (h *Handler) SaveRecords(c echo.Context) error {
 
 	var request CreateRecordRequest
 	err := c.Bind(&request)
