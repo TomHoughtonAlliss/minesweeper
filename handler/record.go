@@ -8,8 +8,19 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (h *Handler) SaveScore(c echo.Context) (err error) {
-	record := &model.Record{ID: bson.NewObjectId()}
+type CreateRecordRequest struct {
+	Name string `json:"name"`
+	Score  string `json:"score"`
+}
+
+func (h *Handler) SaveScore(c echo.Context) error {
+
+	var request CreateRecordRequest
+	err := c.Bind(&request)
+	if err != nil {
+		return err
+	}
+	record := &model.Record{ID: bson.NewObjectId(), Name: request.Name, Score: request.Score}
 
 	database := h.DB.Clone()
 	defer database.Close()
@@ -19,8 +30,21 @@ func (h *Handler) SaveScore(c echo.Context) (err error) {
 	
 	// If the above failed, return the relevant error
 	if insertError != nil {
-		return
+		return insertError
 	}
 
 	return c.JSON(http.StatusCreated, record)
+}
+
+func (h *Handler) GetRecords(c echo.Context) error {
+	database := h.DB.Clone()
+
+	records := []*model.Record{}
+	err := database.DB("minesweeper").C("records").Find(bson.M{}).All(&records)
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusAccepted, records)
 }
